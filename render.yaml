@@ -1,0 +1,26 @@
+# Frontend repository Blueprint: dynamic Next.js on a FREE web service.
+services:
+  - type: web
+    name: findaspace-web-beta
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm run start -- --hostname 0.0.0.0 --port $PORT
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: SPACE_API_URL
+        sync: false
+      - key: SPACE_SITE_URL
+        sync: false
+      - key: SPACE_BFF_SECRET
+        sync: false
+      - key: SPACE_MAP_TILES_URL
+        sync: false
+      - key: SPACE_API_TIMEOUT_MS
+        value: "90000"
+      - key: SPACE_PAYMENTS_ENABLED
+        value: "false"
+      - key: SPACE_DEMO_MODE
+        value: "false"

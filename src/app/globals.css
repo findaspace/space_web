@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. This file is the single source of truth for how Findaspace
+ * looks; there is no other palette, spacing scale or radius anywhere.
+ *
+ * Every Tailwind default is deleted before ours are defined. That turns the
+ * design rules into something the build enforces: bg-violet-600, shadow-lg and
+ * rounded-xl simply do not exist here, so nobody can reach for them.
+ */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+  --radius-*: initial;
+  --font-*: initial;
+  --text-*: initial;
+
+  /* Findaspace: a monochrome interface; photographs retain their colours. */
+  --color-action: #111111;
+  --color-action-pressed: #333333;
+  --color-on-action: #FFFFFF;
+  --color-state: #111111;
+  --color-state-ink: #111111;
+  --color-state-wash: #F1F1F1;
+  --color-ink: #171717;
+  --color-paper: #FFFFFF;
+  --color-ink-muted: #595959;
+  --color-ink-subtle: #686868;
+  --color-surface: #FFFFFF;
+  --color-sunk: #F5F5F5;
+  --color-line: #E8E8E8;
+  --color-line-strong: #CFCFCF;
+  --color-danger: #111111;
+  --color-danger-wash: #F0F0F0;
+
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /*
+   * System fonts. On an iPhone this resolves to SF Pro, legally, because it is
+   * the user's own system font rather than one being distributed. On a Tecno
+   * it is Roboto. Either way the page downloads zero bytes of type.
+   */
+  --font-sans: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /*
+   * Apple's default text styles, at their standard Dynamic Type sizes. Using
+   * the same names means a designer's iOS mock and this code describe the same
+   * thing. Body is 17px, not 16: it is what reads comfortably on a phone held
+   * at arm's length in daylight.
+   */
+  --text-large-title: 34px;
+  --text-large-title--line-height: 41px;
+  --text-large-title--font-weight: 700;
+  --text-large-title--letter-spacing: -0.01em;
+  --text-title-1: 28px;
+  --text-title-1--line-height: 34px;
+  --text-title-1--font-weight: 700;
+  --text-title-2: 22px;
+  --text-title-2--line-height: 28px;
+  --text-title-2--font-weight: 700;
+  --text-title-3: 20px;
+  --text-title-3--line-height: 25px;
+  --text-title-3--font-weight: 600;
+  --text-headline: 17px;
+  --text-headline--line-height: 22px;
+  --text-headline--font-weight: 600;
+  --text-body: 17px;
+  --text-body--line-height: 22px;
+  --text-callout: 16px;
+  --text-callout--line-height: 21px;
+  --text-subheadline: 15px;
+  --text-subheadline--line-height: 20px;
+  --text-footnote: 13px;
+  --text-footnote--line-height: 18px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /*
+   * One shadow, for one kind of element: something that genuinely floats over
+   * content moving beneath it. Today that is the phone's price bar, the
+   * floating map button and the listing card over the map. Depth everywhere
+   * else comes from a line and from space.
+   */
+  --shadow-lift: 0 -1px 16px rgb(17 24 39 / 0.10);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-feature-settings: "kern" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  /*
+   * Money and counts line up in columns so the eye can compare down a list.
+   * Proportional figures make that impossible, and comparing is the whole
+   * point of a search result.
+   */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-state);
+    outline-offset: 2px;
+  }
+}
+
+@layer base {
+  body { margin: 0; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+  button:not(:disabled), summary { cursor: pointer; }
+  input, select, textarea { font-size: max(16px, 1em); }
+  textarea { resize: vertical; }
+  ::selection { background: var(--color-ink); color: var(--color-paper); }
+  dialog { color: var(--color-ink); }
+  dialog::backdrop { background: rgb(0 0 0 / 0.42); backdrop-filter: blur(3px); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+}
+@layer components {
+  .page-shell { width: 100%; max-width: 1440px; margin-inline: auto; padding-inline: 20px; }
+  .section-title { font-size: 23px; line-height: 1.25; font-weight: 650; letter-spacing: -0.035em; }
+  .primary-button { display: inline-flex; min-height: 48px; justify-content: center; align-items: center; gap: 8px; padding-inline: 22px; border-radius: 12px; background: var(--color-action); color: var(--color-on-action); font-size: 15px; font-weight: 600; }
+  .primary-button:hover { background: var(--color-action-pressed); }
+  .secondary-button { display: inline-flex; min-height: 48px; justify-content: center; align-items: center; gap: 8px; padding-inline: 20px; border: 1px solid var(--color-line-strong); border-radius: 12px; background: var(--color-surface); font-size: 15px; font-weight: 600; }
+  .secondary-button:hover { background: var(--color-sunk); }
+  .field-input { width: 100%; min-height: 50px; border: 1px solid var(--color-line-strong); border-radius: 12px; padding: 12px 14px; background: var(--color-surface); }
+  .sheet-dialog { position: fixed; inset: auto 0 0; margin: 0; max-height: 92dvh; max-width: none; width: 100%; overflow-y: auto; border: 0; border-radius: 24px 24px 0 0; padding: 24px 20px max(24px, env(safe-area-inset-bottom)); }
+  .eyebrow { font-size: 11px; line-height: 16px; font-weight: 650; letter-spacing: 0.13em; text-transform: uppercase; }
+  @media (min-width: 768px) {
+    .page-shell { padding-inline: 40px; }
+    .section-title { font-size: 27px; }
+    .sheet-dialog { inset: 0; width: min(560px, calc(100% - 48px)); max-height: 85dvh; margin: auto; border-radius: 24px; padding: 28px; }
+  }
+}

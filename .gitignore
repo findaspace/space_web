@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local secrets. .env.example is the committed template.
+.env
+.env*.local
+
+# The spec checked out by CI, never committed here.
+space_api/
+
+# Copied from node_modules on install and build; never edited by hand.
+public/maplibre/
+
+artifacts/qa/

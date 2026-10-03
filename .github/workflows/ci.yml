@@ -1,0 +1,44 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      SPACE_API_URL: http://localhost:8099
+      SPACE_SITE_URL: http://localhost:3100
+      SPACE_BFF_SECRET: ci-placeholder-secret-not-used-in-production-0000
+      SPACE_PAYMENTS_ENABLED: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: API types match bundled contract
+        run: |
+          npm run api:types
+          git diff --exit-code src/lib/api/schema.d.ts
+      - run: npm run check
+      - run: npm run build
+      - run: npm run budget
+      - run: npx playwright install --with-deps chromium
+      - name: Start production frontend and test API
+        run: |
+          DEMO_PHOTOS=true ACCESS_TTL=900 GRACE=30 BFF_SECRET="$SPACE_BFF_SECRET" node tests/stub-api/server.mjs > /tmp/space-api.log 2>&1 &
+          PORT=3100 npm start > /tmp/space-web.log 2>&1 &
+          node scripts/wait-for-server.mjs http://localhost:3100
+      - run: npm run test:browser
+      - name: Save browser QA artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-qa
+          path: artifacts/qa
