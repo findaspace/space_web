@@ -9,7 +9,7 @@ export function ModeSwitch({ state }: { state: SearchState }) {
   const options = [{ value: undefined, label: 'Any' }, ...MODES];
 
   return (
-    <nav aria-label="How long" className="flex flex-wrap gap-1 rounded-md bg-sunk p-0.5">
+    <nav aria-label="How long" className="flex max-w-full gap-1 overflow-x-auto overscroll-x-contain rounded-md bg-sunk p-0.5">
       {options.map((o) => {
         const selected = state.mode === o.value;
         return (
@@ -20,7 +20,7 @@ export function ModeSwitch({ state }: { state: SearchState }) {
             scroll={false}
             // 8px inside a 10px container with 2px padding: nested corners stay
             // concentric, which is what makes a segmented control look native.
-            className={`flex h-10 min-w-20 items-center justify-center rounded-[8px] px-3 text-subheadline ${
+            className={`flex h-10 min-w-20 shrink-0 whitespace-nowrap items-center justify-center rounded-[8px] px-3 text-subheadline ${
               selected ? 'bg-surface font-semibold text-ink ring-1 ring-line' : 'text-ink-muted'
             }`}
           >

@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - name: API types match bundled contract
@@ -36,9 +36,13 @@ jobs:
           PORT=3100 npm start > /tmp/space-web.log 2>&1 &
           node scripts/wait-for-server.mjs http://localhost:3100
       - run: npm run test:browser
+      - run: npm run test:cinematic
+      - run: node tests/e2e/trust-ui.mjs
       - name: Save browser QA artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: browser-qa
-          path: artifacts/qa
+          path: |
+            artifacts/qa
+            artifacts/cinematic

@@ -10,12 +10,12 @@ import { ACCESS_COOKIE } from '@/lib/session-cookies';
 export default async function PublicLayout({ children }: { children: ReactNode }) {
   const signedIn = (await cookies()).has(ACCESS_COOKIE);
   return (
-    <>
-      {env.SPACE_DEMO_MODE && <div role="note" aria-label="Design preview" className="bg-sunk px-4 py-2 text-center text-caption text-ink-muted">Design preview · Fictional listings and sample photos</div>}
+    <div className="public-layout">
+      {env.SPACE_DEMO_MODE && <aside aria-label="Design preview" className="bg-sunk px-4 py-2 text-center text-caption text-ink-muted">Design preview · Fictional listings and sample photos</aside>}
       <SiteHeader signedIn={signedIn} />
       {children}
       <SiteFooter />
       <TabBar signedIn={signedIn} />
-    </>
+    </div>
   );
 }

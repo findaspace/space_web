@@ -14,15 +14,15 @@ import { SaveButton } from './save-button';
 type Result = components['schemas']['SearchResult'];
 export function ListingCard({ result, priority = false }: { result: Result; priority?: boolean }) {
   const type = CATEGORIES.find((c) => c.value === result.space_type)?.label ?? humanize(result.space_type);
-  return <article className="group relative min-w-0">
+  return <article className="listing-card group relative min-w-0">
     <div className="relative">
-      <Link href={`/s/${result.slug}`} aria-label={`View ${result.title}`} className="relative block aspect-[1.12] overflow-hidden rounded-[18px] bg-sunk">
+      <Link href={`/s/${result.slug}`} prefetch={false} aria-label={`View ${result.title}`} className="listing-image relative block aspect-[1.12] overflow-hidden rounded-[18px] bg-sunk">
         {result.cover_url ? <Image src={result.cover_url} alt={result.title} fill priority={priority} loading={priority ? undefined : 'lazy'} sizes="(min-width: 1280px) 300px, (min-width: 768px) 40vw, 90vw" className="object-cover transition-transform duration-500 group-hover:scale-[1.035]" /> : <div className="flex size-full flex-col items-center justify-center gap-3 text-ink-subtle"><SpaceIcon kind={result.space_type} className="size-10" /><span className="text-footnote">Photos coming soon</span></div>}
         <span className="absolute top-3 left-3 max-w-[65%] truncate rounded-full bg-surface/95 px-3 py-1.5 text-[11px] font-semibold">{result.rental_mode === 'nightly' ? 'Short stay' : type}</span>
       </Link>
       <SaveButton space={result} compact />
     </div>
-    <Link href={`/s/${result.slug}`} className="mt-3 block rounded-sm">
+    <Link href={`/s/${result.slug}`} prefetch={false} className="listing-copy mt-3 block rounded-sm">
       <div className="flex items-start justify-between gap-2">
         <h3 className="line-clamp-1 text-[15px] leading-6 font-semibold tracking-tight">{result.title}</h3>
         {result.review_count > 0 && typeof result.rating === 'number' ? <span className="flex shrink-0 items-center gap-1 text-footnote">★ {result.rating.toFixed(1)}<span className="sr-only"> from {result.review_count} reviews</span></span> : null}

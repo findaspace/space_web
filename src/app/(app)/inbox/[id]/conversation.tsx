@@ -21,12 +21,14 @@ export function Conversation({
   initial,
   initialBefore,
   paymentsEnabled = false,
+  messagingAllowed = true,
 }: {
   threadId: string;
   viewerId: string;
   initial: Message[];
   initialBefore?: string;
   paymentsEnabled?: boolean;
+  messagingAllowed?: boolean;
 }) {
   const [messages, setMessages] = useState<Message[]>(initial);
   const [before, setBefore] = useState(initialBefore);
@@ -73,7 +75,7 @@ export function Conversation({
   }, [lastId]);
 
   async function send() {
-    if (!draft.trim() || sending) return;
+    if (!messagingAllowed || !draft.trim() || sending) return;
     setSending(true);
     setError(undefined);
     const res = await reply(threadId, draft);
@@ -100,6 +102,7 @@ export function Conversation({
 
   return (
     <div className="flex flex-col">
+      {!messagingAllowed && <p role="status" className="mb-4 rounded-md bg-sunk p-4 text-subheadline">Messaging is unavailable for this conversation. Previous messages remain readable.</p>}
       {before ? (
         <button type="button" onClick={older} disabled={loadingOlder} className="mx-auto mb-4 min-h-11 text-subheadline font-semibold text-state-ink">
           {loadingOlder ? 'Loading' : 'Earlier messages'}
@@ -139,7 +142,7 @@ export function Conversation({
         <div className="flex items-end gap-2">
           <label className="min-w-0 flex-1">
             <span className="sr-only">Message</span>
-            <textarea
+            <textarea disabled={!messagingAllowed}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {

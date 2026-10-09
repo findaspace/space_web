@@ -16,7 +16,7 @@ export default async function InboxPage() {
   const { threads } = await unwrap(client.GET('/v1/threads', { params: { query: { limit: 50 } } }));
 
   return (
-    <main id="main-content" className="mx-auto min-h-dvh max-w-2xl px-4 pt-6 pb-[max(2rem,env(safe-area-inset-bottom))] lg:pt-10">
+    <main id="main-content" className="inbox-page mx-auto min-h-dvh max-w-2xl px-4 pt-6 pb-[max(2rem,env(safe-area-inset-bottom))] lg:pt-10">
       <h1 className="text-large-title">Inbox</h1>
 
       {threads.length === 0 ? (

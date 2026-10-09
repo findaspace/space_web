@@ -14,7 +14,7 @@ export function SearchPill({ state, large = false }: { state: SearchState; large
   const types = state.group ? CATEGORIES.filter((c) => (groupFor(state.group)?.types as readonly string[])?.includes(c.value)) : CATEGORIES;
   const filterCount = Number(Boolean(state.type)) + Number(Boolean(state.mode)) + Number(Boolean(state.max));
   const preserved = <>{state.group && <input type="hidden" name="group" value={state.group} />}{state.view && <input type="hidden" name="view" value={state.view} />}</>;
-  return <div className={`w-full ${large ? '' : 'max-w-5xl'}`}>
+  return <div className={`search-pill w-full ${large ? '' : 'max-w-5xl'}`}>
     <div className="flex items-center gap-3 md:hidden">
       <form action="/" method="get" role="search" className="flex h-[58px] min-w-0 flex-1 items-center gap-3 rounded-full border border-line-strong bg-surface px-4 shadow-lift">
         {preserved}

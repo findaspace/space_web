@@ -11,13 +11,13 @@
 // presigned URLs, and map tiles are range requests to the bucket; intercepting
 // either would risk breaking them, for no gain.
 
-const VERSION = 'findaspace-v2';
+const VERSION = 'findaspace-v3';
 const OFFLINE = `offline-${VERSION}`;
 const STATIC = `static-${VERSION}`;
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(OFFLINE).then((cache) => cache.add('/offline.html')));
-  self.skipWaiting();
+
 });
 
 self.addEventListener('activate', (event) => {
@@ -31,6 +31,10 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data === 'ACTIVATE_UPDATE') self.skipWaiting();
+});
+
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
@@ -41,7 +45,7 @@ self.addEventListener('fetch', (event) => {
   // A page: always the network. Only if the network fails entirely does the
   // offline page appear instead of the browser's own error.
   if (request.mode === 'navigate') {
-    event.respondWith(fetch(request).catch(() => caches.match('/offline.html')));
+    event.respondWith(fetch(request).catch(async () => (await caches.match('/offline.html')) || new Response('Connect to the internet and reload Findaspace.', { status: 503, headers: { 'Content-Type': 'text/plain' } })));
     return;
   }
 
@@ -54,9 +58,15 @@ self.addEventListener('fetch', (event) => {
         const hit = await cache.match(request);
         if (hit) return hit;
         const response = await fetch(request);
-        if (response.ok) cache.put(request, response.clone());
+        if (response.ok) {
+          try {
+            await cache.put(request, response.clone());
+            const keys = await cache.keys();
+            for (const key of keys.slice(0, Math.max(0, keys.length - 100))) await cache.delete(key);
+          } catch { /* Storage quota must not prevent the asset from loading. */ }
+        }
         return response;
-      }),
+      }).catch(() => fetch(request)),
     );
   }
   // Everything else, including the data a page loads and every Server

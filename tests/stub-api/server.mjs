@@ -29,6 +29,8 @@ const bookings = new Map();
 const payments = new Map();
 const payoutState = {};
 const payoutLog = [];
+const blocks = new Set();
+const reports = [];
 const threads = new Map();
 const messages = [];
 const notifications = [];
@@ -132,7 +134,7 @@ http.createServer(async (req, res) => {
     if (b.code !== ch.code) return problem(res, 422, 'incorrect code', [{ field: 'code', code: 'mismatch' }]);
     challenges.delete(phone);
     let user = users.get(phone);
-    if (!user) { user = { id: crypto.randomUUID(), phone, display_name: '', roles: ['guest'], created_at: new Date().toISOString() }; users.set(phone, user); }
+    if (!user) { user = { id: crypto.randomUUID(), phone, phone_verified: true, display_name: '', roles: ['guest'], created_at: new Date().toISOString() }; users.set(phone, user); }
     return json(res, 200, tokens(user, crypto.randomUUID()));
   }
 
@@ -158,6 +160,7 @@ http.createServer(async (req, res) => {
     res.writeHead(204); return res.end();
   }
 
+  if (req.method === 'GET' && req.url === '/v1/me/sign-in-methods') { return json(res, 200, { methods: [] }); }
   if (req.method === 'GET' && req.url === '/v1/me') {
     const tok = (req.headers.authorization ?? '').replace(/^Bearer /, '');
     const payload = tok.split('.')[1];
@@ -274,7 +277,7 @@ http.createServer(async (req, res) => {
     if(req.method==='PUT'&&target==='order'){const b=await body(req);const ready=[...media.values()].filter((m)=>m.space===id&&m.status==='ready');if(!Array.isArray(b.ids)||b.ids.length!==ready.length||new Set(b.ids).size!==b.ids.length||b.ids.some((mid)=>!ready.some((m)=>m.id===mid)))return problem(res,404,'not found');b.ids.forEach((mid,i)=>media.get(mid).position=i);return json(res,200,{media:b.ids.map((mid,i)=>({id:mid,url:demoPhoto(i),width:2048,height:1536,position:i,status:'ready'}))});}
   }
   const sm = req.url.match(/^\/v1\/spaces(?:\/([0-9a-f-]{36}))?(\/[a-z]+)?(?:\/([\w-]+)\/confirm)?(\?.*)?$/);
-  if (sm && sm[2] !== '/messages' && sm[2] !== '/contact') {
+  if (sm && sm[2] !== '/messages' && sm[2] !== '/contact' && sm[2] !== '/reports') {
     const uid = who();
     if (!uid) return problem(res, 401, 'authentication required');
     const [, id, sub] = sm;
@@ -476,6 +479,19 @@ http.createServer(async (req, res) => {
   }
   if (req.url === '/debug/reveals') return json(res, 200, reveals.length);
 
+  const reportPath = req.url.match(/^\/v1\/spaces\/([0-9a-f-]{36})\/reports$/);
+  if (reportPath && req.method === 'POST') {
+    const uid = who(); if (!uid) return problem(res,401,'authentication required');
+    const b = await body(req); if (!listingById(reportPath[1])) return problem(res,404,'not found');
+    const report = {id:crypto.randomUUID(),space_id:reportPath[1],reason:b.reason,details:b.details || '',status:'open',created_at:new Date().toISOString()}; reports.push(report); return json(res,201,{id:report.id,status:'open'});
+  }
+  if (req.url === '/v1/me' && req.method === 'DELETE') {
+    const uid=who(); if (!uid) return problem(res,401,'authentication required');
+    const b=await body(req); if (b.confirmation!=='DELETE') return problem(res,422,'confirmation required');
+    for (const [phone,user] of users) if(user.id===uid) users.delete(phone);
+    for (const session of sessions.values()) if(session.user.id===uid) session.revoked=true;
+    res.writeHead(204);return res.end();
+  }
   // ---- messaging and notifications, faithful to space_api ----
   const mt = req.url.match(/^\/v1\/(?:spaces\/([0-9a-f-]{36})\/messages|threads(?:\/([0-9a-f-]{36}))?(\/[a-z]+)?)(\?.*)?$/);
   if (mt) {
@@ -520,7 +536,16 @@ http.createServer(async (req, res) => {
     }
     const t = threads.get(threadId);
     if (!t || (t.guest !== uid && t.host !== uid)) return problem(res, 404, 'not found');
+    const counterpart = t.guest === uid ? t.host : t.guest;
+    const blocked = blocks.has(`${uid}:${counterpart}`);
+    const allowed = !blocked && !blocks.has(`${counterpart}:${uid}`);
+    if (req.method === 'GET' && sub === '/safety') return json(res,200,{blocked,messaging_allowed:allowed});
+    if ((req.method === 'POST' || req.method === 'DELETE') && sub === '/block') {
+      if(req.method==='POST') blocks.add(`${uid}:${counterpart}`);else blocks.delete(`${uid}:${counterpart}`);
+      res.writeHead(204);return res.end();
+    }
     if (req.method === 'POST' && sub === '/messages') {
+      if (!allowed) return problem(res,403,'Messaging is unavailable for this conversation');
       const b = await body(req); if (!exact(b, ['body'], res)) return;
       const m = post(t, uid, b.body); if (!m) return problem(res, 422, 'message is empty', [{ field: 'body', code: 'required' }]);
       return json(res, 201, out(m));

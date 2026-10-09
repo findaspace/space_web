@@ -8,10 +8,10 @@ import { TabBar } from '@/components/tab-bar';
 // requires a session, so the header can assume one.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className="member-layout">
       <SiteHeader signedIn />
       <div className="pb-20 md:pb-0">{children}</div>
       <TabBar signedIn />
-    </>
+    </div>
   );
 }

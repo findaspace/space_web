@@ -27,7 +27,7 @@ function PhoneStep({ state, action, pending }: StepProps<Extract<LoginState, { s
 
   return (
     <form action={action} noValidate className="flex flex-col">
-      <h1 className="text-large-title">Sign in</h1>
+      <h2 className="text-title-2">Use your phone</h2>
       <p className="mt-2 text-body text-ink-muted">
         We will text you a code. No password to remember.
       </p>
@@ -44,7 +44,6 @@ function PhoneStep({ state, action, pending }: StepProps<Extract<LoginState, { s
         placeholder="024 123 4567"
         defaultValue={state.phone}
         required
-        autoFocus
         aria-invalid={state.error ? true : undefined}
         aria-describedby={state.error ? errorId : undefined}
         className="mt-2 h-12 rounded-md border border-line-strong bg-surface px-4 text-body placeholder:text-ink-subtle aria-invalid:border-danger"
@@ -82,7 +81,7 @@ function CodeStep({
 
   return (
     <form action={action} noValidate className="flex flex-col">
-      <h1 className="text-large-title">Enter the code</h1>
+      <h2 className="text-title-2">Enter the code</h2>
       <p className="mt-2 text-body text-ink-muted">
         {state.resent ? 'A new code was sent to ' : 'Sent by SMS to '}
         <span className="font-semibold text-ink">{state.masked}</span>.

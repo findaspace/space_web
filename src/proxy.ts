@@ -44,6 +44,12 @@ export async function proxy(request: NextRequest) {
     // Anything else, including the API being unreachable, leaves the cookies
     // alone. A refresh token that is still good must not be thrown away
     // because the API blinked; the next request will try again.
+    if (needsRefresh(access, Date.now() / 1000, 0)) {
+      return new NextResponse('<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Connection interrupted — Findaspace</title><body><main><h1>We couldn’t reconnect yet.</h1><p>Your sign-in has been kept. Try again in a moment.</p><a href="">Try again</a></main></body></html>', {
+        status: 503,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store', 'Retry-After': '5' },
+      });
+    }
     return NextResponse.next();
   }
 
@@ -82,15 +88,9 @@ export const config = {
       // Static files never need a session.
       source: '/((?!_next/static|_next/image|favicon.ico|brand/|icons/).*)',
 
-      // Prefetches are skipped. Next.js prefetches links in parallel, so an
-      // expired token would otherwise be refreshed by several requests at
-      // once, and the API reads a token used twice as a stolen one. The real
-      // navigation still passes through here and refreshes. The API's grace
-      // window covers whatever concurrency remains.
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
+      // Prefetches also need refreshed request cookies. Otherwise a protected
+      // page can prefetch a login redirect and reuse it on real navigation.
+      // Concurrent rotations are covered by the API's bounded grace window.
     },
   ],
 };
